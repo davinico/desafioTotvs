@@ -5,6 +5,7 @@ import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -93,19 +94,18 @@ public class ContaService {
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8))) {
             String linha;
-            boolean primeiraLinha = true;
 
             while ((linha = reader.readLine()) != null) {
-                if (primeiraLinha) {
-                    primeiraLinha = false;
-                    continue;
-                }
-
-                String[] colunas = linha.split(",");
+                String[] colunas = linha.split(";");
 
                 Conta conta = new Conta();
                 conta.setDescricao(colunas[0].trim());
-                conta.setDataVencimento(LocalDate.parse(colunas[1].trim()));
+
+                String dataString = colunas[1].trim();
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+                LocalDate data = LocalDate.parse(dataString, formatter);
+                conta.setDataVencimento(data);
+
                 conta.setValor(new BigDecimal(colunas[2].trim()));
 
                 this.cadastrarConta(conta);

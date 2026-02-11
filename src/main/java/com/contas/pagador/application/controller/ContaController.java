@@ -2,6 +2,7 @@ package com.contas.pagador.application.controller;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Iterator;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import com.contas.pagador.application.dto.PagarContaDTO;
 import com.contas.pagador.application.service.ContaService;
@@ -43,9 +45,17 @@ public class ContaController {
 	}
 
 	@PostMapping(value = "/importar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-	public ResponseEntity<Void> importar(@RequestParam("file") MultipartFile file) {
-	    contaService.importarCsv(file);
-	    return ResponseEntity.ok().build();
+	public ResponseEntity<Void> importar(MultipartHttpServletRequest request) {
+		Iterator<MultipartFile> files = request.getFileMap().values().iterator();
+
+		if (!files.hasNext()) {
+			return ResponseEntity.badRequest().build();
+		}
+
+		MultipartFile file = files.next();
+		this.contaService.importarCsv(file);
+
+		return ResponseEntity.ok().build();
 	}
 
 	@PutMapping("/{id}/atualizar")
