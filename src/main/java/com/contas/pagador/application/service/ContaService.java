@@ -1,6 +1,7 @@
 package com.contas.pagador.application.service;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
@@ -12,6 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.contas.pagador.application.dto.ContaDTO;
 import com.contas.pagador.domain.model.Conta;
 import com.contas.pagador.domain.model.enums.SituacaoContaEnum;
 import com.contas.pagador.domain.repository.ContaRepository;
@@ -24,13 +26,13 @@ public class ContaService {
         this.contaRepository = contaRepository;
     }
 
-    public Conta cadastrarConta(Conta novaConta) {
-    	novaConta.setSituacao(SituacaoContaEnum.PENDENTE);
+    public ContaDTO cadastrarConta(Conta novaConta) {
+    	novaConta.setSituacao(novaConta.getDataVencimento().isBefore(LocalDate.now())? SituacaoContaEnum.VENCIDO : SituacaoContaEnum.PENDENTE);
     	Conta conta = this.contaRepository.salvar(novaConta);
-        return conta;
+        return ContaDTO.parseContaDTO(conta);
     }
 
-    public Conta atualizarConta(Long id, Conta novosDados) {
+    public ContaDTO atualizarConta(Long id, Conta novosDados) {
         Conta conta = this.contaRepository.buscarPorId(id);
 
         if(conta == null) {
@@ -57,10 +59,10 @@ public class ContaService {
         	conta.setSituacao(novosDados.getSituacao());
         }
 
-        return this.contaRepository.salvar(conta);
+        return ContaDTO.parseContaDTO(this.contaRepository.salvar(conta));
     }
 
-    public void pagarConta(Long id, LocalDate dataPagamento) {
+    public ContaDTO pagarConta(Long id, LocalDate dataPagamento) {
         Conta conta = this.contaRepository.buscarPorId(id);
 
         if(conta == null) {
@@ -72,14 +74,17 @@ public class ContaService {
         }
 
         conta.pagar(dataPagamento);
-        this.contaRepository.salvar(conta);
+        Conta contaAtualizado = this.contaRepository.salvar(conta);
+
+        return ContaDTO.parseContaDTO(contaAtualizado);
     }
 
-    public Conta buscarPorId(Long id) {
-    	return this.contaRepository.buscarPorId(id);
+    public ContaDTO buscarPorId(Long id) {
+    	Conta conta = this.contaRepository.buscarPorId(id);
+    	return ContaDTO.parseContaDTO(conta);
     }
 
-    public Page<Conta> totalAPagarPorDataEDescricao(LocalDate dataVencimento, String descricao, Pageable pageable) {
+    public Page<ContaDTO> totalAPagarPorDataEDescricao(LocalDate dataVencimento, String descricao, Pageable pageable) {
     	return this.contaRepository.totalAPagarPorDataEDescricao(dataVencimento, descricao, pageable);
     }
 
@@ -87,33 +92,33 @@ public class ContaService {
         return this.contaRepository.totalPagoPorPeriodo(dataInicio, dataFim);
     }
 
-    public void importarCsv(MultipartFile file) {
-        if (file == null || file.isEmpty()) {
-            throw new IllegalArgumentException("Arquivo CSV não informado");
-        }
+	public void importarCsv(MultipartFile file) throws IOException {
+		if (file == null || file.isEmpty()) {
+			throw new IllegalArgumentException("Arquivo CSV não informado");
+		}
 
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8))) {
-            String linha;
+		BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8));
+		String linha;
 
-            while ((linha = reader.readLine()) != null) {
-                String[] colunas = linha.split(";");
+		while ((linha = reader.readLine()) != null) {
+			String[] colunas = linha.split(";");
 
-                Conta conta = new Conta();
-                conta.setDescricao(colunas[0].trim());
+			Conta conta = new Conta();
 
-                String dataString = colunas[1].trim();
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-                LocalDate data = LocalDate.parse(dataString, formatter);
-                conta.setDataVencimento(data);
+			try {
+				conta.setDescricao(colunas[0].trim());
 
-                conta.setValor(new BigDecimal(colunas[2].trim()));
+				String dataString = colunas[1].trim();
+				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+				LocalDate data = LocalDate.parse(dataString, formatter);
+				conta.setDataVencimento(data);
 
-                this.cadastrarConta(conta);
-            }
-
-        } catch (Exception e) {
-            throw new RuntimeException("Erro ao importar arquivo CSV", e);
-        }
-    }
+				conta.setValor(new BigDecimal(colunas[2].trim()));
+				this.cadastrarConta(conta);
+			} catch (Exception e) {
+				continue;
+			}
+		}
+	}
 
 }

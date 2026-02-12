@@ -14,6 +14,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.contas.pagador.application.dto.ContaDTO;
 import com.contas.pagador.application.service.ContaService;
 import com.contas.pagador.domain.model.Conta;
 import com.contas.pagador.domain.model.enums.SituacaoContaEnum;
@@ -34,7 +35,7 @@ class ContaServiceTest {
 
         when(contaRepository.buscarPorId(1L)).thenReturn(conta);
 
-        Conta resultado = contaService.buscarPorId(1L);
+        ContaDTO resultado = contaService.buscarPorId(1L);
 
         assertNotNull(resultado);
         assertEquals(1L, resultado.getId());
@@ -49,7 +50,7 @@ class ContaServiceTest {
 
         when(contaRepository.salvar(any(Conta.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        Conta resultado = contaService.cadastrarConta(conta);
+        ContaDTO resultado = contaService.cadastrarConta(conta);
 
         assertNotNull(resultado);
         assertEquals(SituacaoContaEnum.PENDENTE, resultado.getSituacao());

@@ -9,14 +9,15 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import com.contas.pagador.application.dto.ContaDTO;
 import com.contas.pagador.domain.model.Conta;
 import com.contas.pagador.domain.model.enums.SituacaoContaEnum;
 
 public interface ContaJpaRepository extends JpaRepository<Conta, Long> {
 
-	@Query("SELECT c FROM Conta c WHERE c.situacao = :situacaoContaEnum AND (:dataVencimento IS NULL OR c.dataVencimento = :dataVencimento) AND "
+	@Query("SELECT new com.contas.pagador.application.dto.ContaDTO(c.id, c.dataVencimento, c.dataPagamento, c.descricao, c.situacao) FROM Conta c WHERE c.situacao = :situacaoContaEnum AND (:dataVencimento IS NULL OR c.dataVencimento = :dataVencimento) AND "
 			+ "(LOWER(c.descricao) LIKE LOWER(CONCAT('%',:descricao,'%')) OR :descricao IS NULL)")
-	Page<Conta> totalAPagarPorDataEDescricao(SituacaoContaEnum situacaoContaEnum, LocalDate dataVencimento, String descricao, Pageable pageable);
+	Page<ContaDTO> totalAPagarPorDataEDescricao(SituacaoContaEnum situacaoContaEnum, LocalDate dataVencimento, String descricao, Pageable pageable);
 
 	@Query("SELECT COALESCE(SUM(c.valor), 0) FROM Conta c WHERE c.situacao = :situacao AND c.dataPagamento BETWEEN :dataInicio AND :dataFim")
     BigDecimal totalPagoPorPeriodo(SituacaoContaEnum situacao, LocalDate dataInicio, LocalDate dataFim);

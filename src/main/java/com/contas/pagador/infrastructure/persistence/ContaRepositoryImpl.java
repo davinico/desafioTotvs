@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
+import com.contas.pagador.application.dto.ContaDTO;
 import com.contas.pagador.domain.model.Conta;
 import com.contas.pagador.domain.model.enums.SituacaoContaEnum;
 import com.contas.pagador.domain.repository.ContaRepository;
@@ -32,7 +33,7 @@ public class ContaRepositoryImpl implements ContaRepository {
     }
 
     @Override
-    public Page<Conta> totalAPagarPorDataEDescricao(LocalDate dataVencimento, String descricao, Pageable pageable) {
+    public Page<ContaDTO> totalAPagarPorDataEDescricao(LocalDate dataVencimento, String descricao, Pageable pageable) {
         return this.jpaRepository.totalAPagarPorDataEDescricao(SituacaoContaEnum.PENDENTE, dataVencimento, descricao, pageable);
     }
 

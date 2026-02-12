@@ -1,5 +1,6 @@
 package com.contas.pagador.application.controller;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Iterator;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
+import com.contas.pagador.application.dto.ContaDTO;
 import com.contas.pagador.application.dto.PagarContaDTO;
 import com.contas.pagador.application.service.ContaService;
 import com.contas.pagador.domain.model.Conta;
@@ -39,13 +41,13 @@ public class ContaController {
 	}
 
 	@PostMapping("/cadastrar")
-	public ResponseEntity<Conta> cadastrar(@RequestBody @Valid Conta conta) {
-		Conta contaNova = this.contaService.cadastrarConta(conta);
+	public ResponseEntity<ContaDTO> cadastrar(@RequestBody @Valid Conta conta) {
+		ContaDTO contaNova = this.contaService.cadastrarConta(conta);
 		return ResponseEntity.status(HttpStatus.CREATED).body(contaNova);
 	}
 
 	@PostMapping(value = "/importar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-	public ResponseEntity<Void> importar(MultipartHttpServletRequest request) {
+	public ResponseEntity<Void> importar(MultipartHttpServletRequest request) throws IOException {
 		Iterator<MultipartFile> files = request.getFileMap().values().iterator();
 
 		if (!files.hasNext()) {
@@ -59,24 +61,24 @@ public class ContaController {
 	}
 
 	@PutMapping("/{id}/atualizar")
-	public ResponseEntity<Conta> atualizar(@PathVariable Long id, @RequestBody @Valid Conta conta) {
-		Conta atualizada = this.contaService.atualizarConta(id, conta);
+	public ResponseEntity<ContaDTO> atualizar(@PathVariable Long id, @RequestBody @Valid Conta conta) {
+		ContaDTO atualizada = this.contaService.atualizarConta(id, conta);
 		return ResponseEntity.ok(atualizada);
 	}
 
 	@PatchMapping("/{id}/pagar")
-	public ResponseEntity<Void> pagar(@PathVariable Long id, @RequestBody @Valid PagarContaDTO request) {
-		this.contaService.pagarConta(id, request.getDataPagamento());
-		return ResponseEntity.noContent().build();
+	public ResponseEntity<ContaDTO> pagar(@PathVariable Long id, @RequestBody @Valid PagarContaDTO request) {
+		ContaDTO contaAtualizada = this.contaService.pagarConta(id, request.getDataPagamento());
+		return ResponseEntity.ok(contaAtualizada);
 	}
 
 	@GetMapping("/total-a-pagar-por-data-e-descricao")
-	public ResponseEntity<Page<Conta>> totalAPagarPorDataEDescricao(@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataVencimento, @RequestParam(required = false) String descricao, Pageable pageable) {
+	public ResponseEntity<Page<ContaDTO>> totalAPagarPorDataEDescricao(@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataVencimento, @RequestParam(required = false) String descricao, Pageable pageable) {
 		return ResponseEntity.ok(this.contaService.totalAPagarPorDataEDescricao(dataVencimento, descricao, pageable));
 	}
 
 	@GetMapping("/{id}/filtrar-por-id")
-	public ResponseEntity<Conta> buscarPorId(@PathVariable Long id) {
+	public ResponseEntity<ContaDTO> buscarPorId(@PathVariable Long id) {
 		return ResponseEntity.ok(this.contaService.buscarPorId(id));
 	}
 
