@@ -3,6 +3,7 @@ package com.contas.pagador.domain.model;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+import com.contas.pagador.domain.exceptions.ContaJaPagaException;
 import com.contas.pagador.domain.model.enums.SituacaoContaEnum;
 
 import jakarta.persistence.Entity;
@@ -41,7 +42,7 @@ public class Conta {
 
 	public void pagar(LocalDate dataPagamento) {
 		if (this.situacao == SituacaoContaEnum.PAGO) {
-			throw new IllegalStateException("A conta já está paga!");
+			throw new ContaJaPagaException();
 		}
 
 		this.dataPagamento = dataPagamento;

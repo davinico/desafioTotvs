@@ -35,10 +35,6 @@ public class ContaService {
     public ContaDTO atualizarConta(Long id, Conta novosDados) {
         Conta conta = this.contaRepository.buscarPorId(id);
 
-        if(conta == null) {
-        	throw new RuntimeException("Conta não encontrada!");
-        }
-
         if(novosDados.getDataPagamento() != null) {
         	conta.setDataPagamento(novosDados.getDataPagamento());
         }

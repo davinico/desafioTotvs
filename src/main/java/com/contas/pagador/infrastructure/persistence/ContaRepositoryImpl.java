@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import com.contas.pagador.application.dto.ContaDTO;
+import com.contas.pagador.domain.exceptions.ContaNaoEncontradaException;
 import com.contas.pagador.domain.model.Conta;
 import com.contas.pagador.domain.model.enums.SituacaoContaEnum;
 import com.contas.pagador.domain.repository.ContaRepository;
@@ -29,7 +30,7 @@ public class ContaRepositoryImpl implements ContaRepository {
 
     @Override
     public Conta buscarPorId(Long id) {
-    	return this.jpaRepository.findById(id).orElse(null);
+    	return this.jpaRepository.findById(id).orElseThrow(() -> new ContaNaoEncontradaException());
     }
 
     @Override
