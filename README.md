@@ -2,7 +2,7 @@
 
 * CADASTRAR CONTA
   http://localhost:8080/api/contas/cadastrar
-  body:  {"descricao": "Contasss de SddddddSddawdawdadawdawdawdwadKY", "valor": 200.50, "dataVencimento": "2027-03-24"}
+  body:  {"descricao": "Conta de luz", "valor": 200.50, "dataVencimento": "2027-03-24"}
   auth: username(admin),  password(admin123)
 
 *FILTRAR POR ID 
